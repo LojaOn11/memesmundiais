@@ -1,29 +1,40 @@
-<div class="gallery">
-  <!-- Meme 1 - Imagem -->
-  <div class="meme-card">
-    <img src="https://via.placeholder.com/300x200.png?text=Meme+1" alt="Meme 1">
-    <button class="share-btn" onclick="shareMeme('meme1')">Compartilhar</button>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Galeria de Memes</title>
+  <style>
+    body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
+    .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 20px; }
+    .meme-card { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    .meme-card img, .meme-card video { width: 100%; border-radius: 6px; }
+    .share-btn { margin-top: 8px; display: inline-block; background: #007bff; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 14px; cursor: pointer; text-align: center; }
+  </style>
+</head>
+<body>
+  <h1 style="text-align:center">Galeria de Memes</h1>
+  <div class="gallery">
+    <div class="meme-card">
+      <img src="https://via.placeholder.com/300x200.png?text=Meme+1" alt="Meme 1" />
+      <a class="share-btn" onclick="shareMeme('meme1')">Compartilhar</a>
+    </div>
+    <div class="meme-card">
+      <video controls>
+        <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4" />
+      </video>
+      <a class="share-btn" onclick="shareMeme('meme2')">Compartilhar</a>
+    </div>
   </div>
 
-  <!-- Meme 2 - Vídeo -->
-  <div class="meme-card">
-    <video controls>
-      <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-    </video>
-    <button class="share-btn" onclick="shareMeme('meme2')">Compartilhar</button>
-  </div>
-
-  <!-- Meme 3 - Imagem -->
-  <div class="meme-card">
-    <img src="https://via.placeholder.com/300x200.png?text=Meme+3" alt="Meme 3">
-    <button class="share-btn" onclick="shareMeme('meme3')">Compartilhar</button>
-  </div>
-
-  <!-- Meme 4 - Vídeo -->
-  <div class="meme-card">
-    <video controls>
-      <source src="https://media.w3.org/2010/05/sintel/trailer_hd.mp4" type="video/mp4">
-    </video>
-    <button class="share-btn" onclick="shareMeme('meme4')">Compartilhar</button>
-  </div>
-</div>
+  <script>
+    function shareMeme(memeId) {
+      const ref = Math.random().toString(36).substring(2, 10);
+      const url = `${window.location.origin}/memesmundiais/view.html?meme=${memeId}&ref=${ref}`;
+      navigator.clipboard.writeText(url).then(() => {
+        alert("Link copiado:\n" + url);
+      });
+    }
+  </script>
+</body>
+</html>
