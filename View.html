@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizar Meme</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f0f0; }
+    .meme-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: inline-block; }
+    img, video { max-width: 100%; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="meme-container">
+    <h2>Meme Visualizado</h2>
+    <div id="meme-content">Carregando meme...</div>
+    <p id="info">Carregando localização...</p>
+  </div>
+
+  <script>
+    const memes = {
+      meme1: '<img src="https://via.placeholder.com/300x200.png?text=Meme+1" alt="Meme 1">',
+      meme2: '<video controls><source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4"></video>'
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const memeId = params.get("meme");
+    const ref = params.get("ref");
+
+    const memeContent = memes[memeId] || "<p>Meme não encontrado.</p>";
+    document.getElementById("meme-content").innerHTML = memeContent;
+
+    fetch("https://ipapi.co/json")
+      .then(res => res.json())
+      .then(data => {
+        const info = `Referência: ${ref}<br>IP: ${data.ip}<br>Local: ${data.city}, ${data.country_name}`;
+        document.getElementById("info").innerHTML = info;
+      });
+  </script>
+</body>
+</html>
