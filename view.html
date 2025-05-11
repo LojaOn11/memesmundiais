@@ -1,1 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizar Meme</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f0f0; }
+    .meme-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: inline-block; }
+    img, video { max-width: 100%; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <div class="meme-container">
+    <h2>Meme Visualizado</h2>
+    <div id="meme-content">Carregando meme...</div>
+    <p id="info">Carregando localização...</p>
+  </div>
+
+  <script>
+    // Base de dados dos memes
+    const memes = {
+      meme1: {
+        type: "image",
+        src: "https://via.placeholder.com/300x200.png?text=Meme+1",
+        alt: "Meme 1"
+      },
+      meme2: {
+        type: "video",
+        src: "https://www.w3schools.com/html/mov_bbb.mp4"
+      },
+      meme3: {
+        type: "image",
+        src: "https://via.placeholder.com/300x200.png?text=Meme+3",
+        alt: "Meme 3"
+      }
+      // Adicione mais memes aqui!
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const memeId = params.get("meme");
+    const ref = params.get("ref");
+    const meme = memes[memeId];
+
+    const contentDiv = document.getElementById("meme-content");
+
+    if (meme) {
+      if (meme.type === "image") {
+        contentDiv.innerHTML = `<img src="${meme.src}" alt="${meme.alt || "Meme"}">`;
+      } else if (meme.type === "video") {
+        contentDiv.innerHTML = `<video controls><source src="${meme.src}" type="video/mp4"></video>`;
+      }
+    } else {
+      contentDiv.innerHTML = "<p>Meme não encontrado.</p>";
+    }
+
+    // Localização
+    fetch("https://ipapi.co/json")
+      .then(res => res.json())
+      .then(data => {
+        const info = `Referência: ${ref}<br>IP: ${data.ip}<br>Local: ${data.city}, ${data.country_name}`;
+        document.getElementById("info").innerHTML = info;
+      });
+  </script>
+</body>
+</html>
 
