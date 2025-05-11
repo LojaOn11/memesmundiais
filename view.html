@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizar Meme</title>
+</head>
+<body>
+  <h2>Meme Visualizado</h2>
+  <p id="info">Carregando dados de localização...</p>
+
+  <script>
+    fetch("https://ipapi.co/json")
+      .then(res => res.json())
+      .then(data => {
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get("ref");
+        const meme = params.get("meme");
+
+        const info = `Meme: ${meme}<br>Referência: ${ref}<br>IP: ${data.ip}<br>Local: ${data.city}, ${data.country_name}`;
+        document.getElementById("info").innerHTML = info;
+
+        console.log("LOG DE VISITA", { meme, ref, ip: data.ip, location: data.city + ", " + data.country_name });
+      });
+  </script>
+</body>
+</html>
