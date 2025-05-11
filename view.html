@@ -1,67 +1,88 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Visualizar Meme</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Meme Visualizado</title>
   <style>
-    body { font-family: sans-serif; text-align: center; padding: 20px; background: #f0f0f0; }
-    .meme-container { background: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); display: inline-block; }
-    img, video { max-width: 100%; border-radius: 8px; }
+    body {
+      font-family: sans-serif;
+      background: #f4f4f4;
+      margin: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      flex-direction: column;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+      max-width: 400px;
+      width: 100%;
+    }
+
+    h2 {
+      margin-top: 0;
+    }
+
+    .info-line {
+      margin: 10px 0;
+    }
+
+    .back-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 8px 16px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      text-decoration: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <div class="meme-container">
+  <div class="card">
     <h2>Meme Visualizado</h2>
-    <div id="meme-content">Carregando meme...</div>
-    <p id="info">Carregando localização...</p>
+    <div id="info">Carregando dados de localização...</div>
+    <a class="back-btn" href="index.html">Voltar para Galeria</a>
   </div>
 
   <script>
-    // Base de dados dos memes
-    const memes = {
-      meme1: {
-        type: "image",
-        src: "https://via.placeholder.com/300x200.png?text=Meme+1",
-        alt: "Meme 1"
-      },
-      meme2: {
-        type: "video",
-        src: "https://www.w3schools.com/html/mov_bbb.mp4"
-      },
-      meme3: {
-        type: "image",
-        src: "https://via.placeholder.com/300x200.png?text=Meme+3",
-        alt: "Meme 3"
-      }
-      // Adicione mais memes aqui!
-    };
-
-    const params = new URLSearchParams(window.location.search);
-    const memeId = params.get("meme");
-    const ref = params.get("ref");
-    const meme = memes[memeId];
-
-    const contentDiv = document.getElementById("meme-content");
-
-    if (meme) {
-      if (meme.type === "image") {
-        contentDiv.innerHTML = `<img src="${meme.src}" alt="${meme.alt || "Meme"}">`;
-      } else if (meme.type === "video") {
-        contentDiv.innerHTML = `<video controls><source src="${meme.src}" type="video/mp4"></video>`;
-      }
-    } else {
-      contentDiv.innerHTML = "<p>Meme não encontrado.</p>";
-    }
-
-    // Localização
     fetch("https://ipapi.co/json")
       .then(res => res.json())
       .then(data => {
-        const info = `Referência: ${ref}<br>IP: ${data.ip}<br>Local: ${data.city}, ${data.country_name}`;
-        document.getElementById("info").innerHTML = info;
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get("ref") || "N/A";
+        const meme = params.get("meme") || "Desconhecido";
+
+        const infoHTML = `
+          <div class="info-line"><strong>Meme:</strong> ${meme}</div>
+          <div class="info-line"><strong>Referência:</strong> ${ref}</div>
+          <div class="info-line"><strong>IP:</strong> ${data.ip}</div>
+          <div class="info-line"><strong>Local:</strong> ${data.city}, ${data.country_name}</div>
+        `;
+
+        document.getElementById("info").innerHTML = infoHTML;
+
+        console.log("LOG DE VISITA", {
+          meme,
+          ref,
+          ip: data.ip,
+          location: `${data.city}, ${data.country_name}`
+        });
+      })
+      .catch(err => {
+        document.getElementById("info").innerHTML = `<div style="color:red;">Erro ao obter localização.</div>`;
+        console.error("Erro ao buscar IP:", err);
       });
   </script>
 </body>
 </html>
-
