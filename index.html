@@ -35,6 +35,7 @@
       const memeImage = document.getElementById("memeImage");
       const memeVideo = document.getElementById("memeVideo");
 
+      // Verifica o memeID e exibe a imagem ou vídeo correspondente
       if (memeId === "meme1") {
         memeImage.src = "https://via.placeholder.com/300x200.png?text=Meme+1";
         memeImage.style.display = "block";
@@ -45,18 +46,17 @@
         memeImage.style.display = "none";
       } else {
         document.getElementById("info").innerText = "Meme não encontrado!";
-        return;
+        return false; // Não exibe nada caso o meme não seja encontrado
       }
+      return true; // Retorna true caso o meme seja exibido com sucesso
     }
 
     // Função para pegar data/hora local e dispositivo
     function getLocalDataAndDevice() {
       const now = new Date();
       const dateTime = now.toLocaleString(); // Data e hora local
-
       const userAgent = navigator.userAgent; // Informações sobre o dispositivo
       const info = `Data/Hora Local: ${dateTime}<br>Aparelho: ${userAgent}`;
-
       return info;
     }
 
@@ -99,16 +99,16 @@
 
     // Função que exibe o meme e ativa o botão para capturar a foto
     function startCapture(meme) {
-      // Exibir o meme
-      displayMeme(meme);
-
-      // Após o meme ser exibido, adicionar o botão para capturar a foto
-      const photoContainer = document.getElementById("photoContainer");
-      const captureButton = document.createElement("button");
-      captureButton.className = "btn-capture";
-      captureButton.innerText = "Capturar Foto";
-      captureButton.onclick = capturePhoto;
-      photoContainer.appendChild(captureButton);
+      const memeFound = displayMeme(meme); // Exibe o meme
+      if (memeFound) {
+        // Após o meme ser exibido, adicionar o botão para capturar a foto
+        const photoContainer = document.getElementById("photoContainer");
+        const captureButton = document.createElement("button");
+        captureButton.className = "btn-capture";
+        captureButton.innerText = "Capturar Foto";
+        captureButton.onclick = capturePhoto;
+        photoContainer.appendChild(captureButton);
+      }
     }
 
     // Carregar as informações de localização, meme, data/hora, dispositivo e tirar foto
