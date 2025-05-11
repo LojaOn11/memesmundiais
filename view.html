@@ -23,7 +23,7 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-      max-width: 400px;
+      max-width: 500px;
       width: 100%;
     }
 
@@ -33,6 +33,12 @@
 
     .info-line {
       margin: 10px 0;
+    }
+
+    .meme-media {
+      margin-top: 20px;
+      max-width: 100%;
+      border-radius: 10px;
     }
 
     .back-btn {
@@ -52,37 +58,63 @@
   <div class="card">
     <h2>Meme Visualizado</h2>
     <div id="info">Carregando dados de localização...</div>
+    <div id="meme-container"></div>
     <a class="back-btn" href="index.html">Voltar para Galeria</a>
   </div>
 
   <script>
+    const memes = {
+      meme1: { type: "image", src: "https://via.placeholder.com/300x200.png?text=Meme+1" },
+      meme2: { type: "video", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
+      meme3: { type: "image", src: "https://via.placeholder.com/300x200.png?text=Meme+3" },
+      meme4: { type: "video", src: "https://media.w3.org/2010/05/sintel/trailer_hd.mp4" }
+      // Adicione mais aqui
+    };
+
+    const params = new URLSearchParams(window.location.search);
+    const memeId = params.get("meme") || "desconhecido";
+    const ref = params.get("ref") || "N/A";
+
+    const meme = memes[memeId];
+
+    // Mostrar localização
     fetch("https://ipapi.co/json")
       .then(res => res.json())
       .then(data => {
-        const params = new URLSearchParams(window.location.search);
-        const ref = params.get("ref") || "N/A";
-        const meme = params.get("meme") || "Desconhecido";
-
         const infoHTML = `
-          <div class="info-line"><strong>Meme:</strong> ${meme}</div>
+          <div class="info-line"><strong>Meme:</strong> ${memeId}</div>
           <div class="info-line"><strong>Referência:</strong> ${ref}</div>
           <div class="info-line"><strong>IP:</strong> ${data.ip}</div>
           <div class="info-line"><strong>Local:</strong> ${data.city}, ${data.country_name}</div>
         `;
-
         document.getElementById("info").innerHTML = infoHTML;
-
-        console.log("LOG DE VISITA", {
-          meme,
-          ref,
-          ip: data.ip,
-          location: `${data.city}, ${data.country_name}`
-        });
       })
-      .catch(err => {
+      .catch(() => {
         document.getElementById("info").innerHTML = `<div style="color:red;">Erro ao obter localização.</div>`;
-        console.error("Erro ao buscar IP:", err);
       });
+
+    // Mostrar mídia
+    const container = document.getElementById("meme-container");
+    if (meme) {
+      if (meme.type === "image") {
+        const img = document.createElement("img");
+        img.src = meme.src;
+        img.alt = memeId;
+        img.className = "meme-media";
+        container.appendChild(img);
+      } else if (meme.type === "video") {
+        const video = document.createElement("video");
+        video.controls = true;
+        video.className = "meme-media";
+        const source = document.createElement("source");
+        source.src = meme.src;
+        source.type = "video/mp4";
+        video.appendChild(source);
+        container.appendChild(video);
+      }
+    } else {
+      container.innerHTML = `<p style="color:red;">Meme não encontrado.</p>`;
+    }
   </script>
 </body>
 </html>
