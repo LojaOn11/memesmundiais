@@ -30,7 +30,7 @@
   <script>
     function shareMeme(memeId) {
       const uniqueId = Math.random().toString(36).substring(2, 10);
-      const shareUrl = `${window.location.origin}/view.html?meme=${memeId}&ref=${uniqueId}`;
+      const shareUrl = const shareUrl = `${window.location.origin}/memesmundiais/view.html?meme=${memeId}&ref=${uniqueId}`;
       navigator.clipboard.writeText(shareUrl).then(() => {
         alert("Link copiado! Envie para alguém: \n" + shareUrl);
       });
