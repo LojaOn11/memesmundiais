@@ -5,37 +5,80 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Galeria de Memes</title>
   <style>
-    body { font-family: sans-serif; margin: 0; background: #f4f4f4; }
-    .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; padding: 20px; }
-    .meme-card { background: white; padding: 10px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    .meme-card img, .meme-card video { width: 100%; border-radius: 6px; }
-    .share-btn { margin-top: 8px; display: inline-block; background: #007bff; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; font-size: 14px; }
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+      padding: 20px;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      padding: 20px;
+    }
+
+    .meme-card {
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+    }
+
+    .meme-card img,
+    .meme-card video {
+      width: 100%;
+      border-radius: 6px;
+    }
+
+    .share-btn {
+      margin-top: 8px;
+      background: #007bff;
+      color: white;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+    }
   </style>
 </head>
 <body>
-  <h1 style="text-align:center">Galeria de Memes</h1>
+  <h1>Galeria de Memes</h1>
+
   <div class="gallery">
     <div class="meme-card">
       <img src="https://via.placeholder.com/300x200.png?text=Meme+1" alt="Meme 1">
-      <a class="share-btn" href="botton" onclick="shareMeme('meme1')">Compartilhar</botton>
+      <button class="share-btn" onclick="shareMeme('meme1')">Compartilhar</button>
     </div>
+
     <div class="meme-card">
       <video controls>
         <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
       </video>
-      <a class="share-btn" href="#" onclick="shareMeme('meme2')">Compartilhar</a>
+      <button class="share-btn" onclick="shareMeme('meme2')">Compartilhar</button>
     </div>
+
+    <!-- Você pode adicionar mais memes aqui -->
   </div>
 
   <script>
     function shareMeme(memeId) {
       const uniqueId = Math.random().toString(36).substring(2, 10);
-      const shareUrl = const shareUrl = `${window.location.origin}/memesmundiais/view.html?meme=${memeId}&ref=${uniqueId}`;
+      const shareUrl = `${window.location.origin}/memesmundiais/view.html?meme=${memeId}&ref=${uniqueId}`;
+
       navigator.clipboard.writeText(shareUrl).then(() => {
-        alert("Link copiado! Envie para alguém: \n" + shareUrl);
+        alert("Link copiado! Envie para alguém:\n" + shareUrl);
+      }).catch(err => {
+        alert("Erro ao copiar link: " + err);
       });
     }
   </script>
 </body>
 </html>
-
